@@ -1,6 +1,6 @@
 const oauth = require('oauth');
-      url = require('url');
-      _ = require('lodash');
+url = require('url');
+_ = require('lodash');
 
 var oauthCache = null;
 
@@ -16,7 +16,7 @@ exports.constructOa = function (client) {
         'https://api.twitter.com/oauth/request_token',
         'https://api.twitter.com/oauth/access_token',
         client.consumerKey, client.consumerSecret,
-        '1.0A', null, 'HMAC-SHA1'
+        '1.0', null, 'HMAC-SHA1'
     );
 };
 
@@ -36,7 +36,7 @@ exports.constructOa = function (client) {
  *                         Takes an error, the response as a string and the full
  *                         response object.
  */
-exports.proxyRequest = function (opts, cb) {
+function proxyRequest(opts, cb) {
     // Pull the oa object from the in-memory cache, or create a new one.
     let oa = oauthCache || exports.constructOa(opts.client);
     oauthCache = oa;
@@ -54,9 +54,11 @@ exports.proxyRequest = function (opts, cb) {
         query: opts.req.query
     });
 
-    return oa[method](
-        twitterUrl, opts.config.accessToken,
-        opts.config.accessTokenSecret, cb
+    oa[method](
+        twitterUrl,
+        opts.config.accessToken,
+        opts.config.accessTokenSecret,
+        JSON.stringify(opts.body), 'application/json', cb
     );
 };
 
@@ -67,7 +69,7 @@ exports.filterHeaders = function (headers) {
     let reject = ['content-length', 'content-type'];
 
     return Object.keys(headers).reduce(function (memo, key) {
-        if (!_.contains(reject, key))
+        if (!_.includes(reject, key))
             memo[key] = headers[key];
 
         return memo;
@@ -93,13 +95,14 @@ exports.route = function (app) {
         // Prozy the request onward to Twitter. The OAuth parcel is created in
         // proxyRequest, and cached for later.
         // method, path, config, req, client
-        exports.proxyRequest({
+        proxyRequest({
             req: req,
             method: req.method,
             path: req.path,
+            body: req.body,
             config: proxyConfig,
             client: client
-        }, function (oaErr, strData, oaRes) {
+        }, (oaErr, strData, oaRes) => {
             // Merge headers in, but don't overwrite any existing headers
             if (oaRes.headers)
                 res.set(_.defaults({}, res._headers, exports.filterHeaders(oaRes.headers)));
@@ -114,17 +117,18 @@ exports.route = function (app) {
                 try {
                     data = JSON.parse(oaErr.data);
                 } catch (e) {
+                    console.log('oaErr', e);
                 }
             }
 
             // Try to extract JSON data
             try {
-                data = JSON.parse(strData);
+                // Pass on data with the same the status code
+                res.setHeader('Content-Type', 'application/json');
+                res.status(oaRes.statusCode).send(JSON.parse(data));
             } catch (e) {
+                console.log(e);
             }
-
-            // Pass on data with the same the status code
-            res.send(oaRes.statusCode, data);
         });
     });
 };
