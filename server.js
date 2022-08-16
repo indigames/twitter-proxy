@@ -12,17 +12,6 @@ module.exports = function startTwitterProxyServer(config) {
         app = express();
     let proxy = require('./proxy');
 
-    // using env config by default
-    if (!config) {
-        config = {
-            consumerKey: process.env.CONSUMER_KEY,
-            consumerSecret: process.env.CONSUMER_SECRET,
-            accessToken: process.env.ACCESS_TOKEN,
-            accessTokenSecret: process.env.ACCESS_TOKEN_SECRET,
-            port: process.env.PORT
-        };
-    }
-
     // Save the config for use later
     app.set('config', config);
     // All environments
