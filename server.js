@@ -7,6 +7,7 @@ module.exports = function startTwitterProxyServer(config) {
     let express = require('express'),
         compression = require('compression'),
         morgan = require('morgan'),
+        cors = require('cors'),
         http = require('http'),
         app = express();
     let proxy = require('./proxy');
@@ -23,17 +24,9 @@ module.exports = function startTwitterProxyServer(config) {
     app.use(express.json());
     app.use(express.urlencoded());
     // CORS
-    app.use(function (req, res, next) {
-        res.header("Access-Control-Allow-Origin", "*");
-        res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-        res.header("Access-Control-Allow-Headers", "X-Requested-With");
-        res.header('Content-Type', 'application/javascript');
-
-        if (req.method === 'OPTIONS')
-            return res.send(200);
-
-        next();
-    });
+    app.use(cors({
+        origin: '*'
+    }))
 
     // Set up the routes
     proxy.route(app);
