@@ -109,6 +109,7 @@ exports.route = function (app) {
             var [key, content] = token.split('=');
             resultObject[key] = content;
         }
+        //asdasd
         res.send(resultObject.oauth_token);
     });
 
