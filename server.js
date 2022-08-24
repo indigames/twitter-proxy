@@ -10,6 +10,7 @@ module.exports = function startTwitterProxyServer(config) {
         cors = require('cors'),
         http = require('http'),
         app = express();
+        var bodyParser = require('body-parser');
     let proxy = require('./proxy');
 
     // using env config by default
@@ -33,7 +34,7 @@ module.exports = function startTwitterProxyServer(config) {
     app.use(compression());
     // Body parsing
     app.use(express.json());
-    app.use(express.urlencoded());
+    app.use(bodyParser.urlencoded({ extended: true }));
     // CORS
     app.use(cors({
         origin: '*'
