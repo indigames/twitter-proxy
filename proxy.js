@@ -98,87 +98,6 @@ exports.route = function (app) {
     app.use(bodyParser.urlencoded({ extended: true }));
     app.use(upload.array());
     app.use(express.static('public'));
-    app.get('/oauth/*', (req, res, next) => {
-        console.log(`proxy::oauth::${req.method}`);
-        var str = req.url;
-        str = str.split("?").pop();
-
-        var resultObject = {};
-        var tokens = str.split('&');
-        for (let index = 0; index < tokens.length; index++) {
-            const token = tokens[index];
-            var [key, content] = token.split('=');
-            resultObject[key] = content;
-        }
-        //asdasd
-        res.send(resultObject.oauth_token);
-    });
-
-    app.get('/ValidateTwitterAuth', (req, res, next) => {
-        var str = req.url;
-        str = str.split("?").pop();
-
-        var resultObject = {};
-        var tokens = str.split('&');
-        for (let index = 0; index < tokens.length; index++) {
-            const token = tokens[index];
-            var [key, content] = token.split('=');
-            resultObject[key] = content;
-        }
-
-
-        var targetUrl = "https://api.twitter.com/oauth/access_token";
-        var datas = new FormData();
-        datas.append('oauth_verifier', resultObject.oauth_verifier);
-        var requestOptions = {
-            method: 'POST',
-            headers: {
-                "Authorization": _GenerateHeaders(resultObject.oauth_token, config.accessTokenSecret, targetUrl, 'POST', app),
-            },
-            body: datas,
-            redirect: 'follow'
-        };
-
-        fetch(targetUrl, requestOptions)
-            .then(response => response.text())
-            .then(result => {
-                var resultStr = result;
-                var ClientKeyObject = {};
-                var ClientTokens = resultStr.split('&');
-                for (let index = 0; index < ClientTokens.length; index++) {
-                    const ClientToken = ClientTokens[index];
-                    var [key, content] = ClientToken.split('=');
-                    ClientKeyObject[key] = content;
-                }
-
-                var raw = JSON.stringify({
-                    "text": "Tweet from Proxy sever take 3"
-                });
-                var tweetURL = "https://api.twitter.com/2/tweets";
-                var Options = {
-                    method: 'POST',
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": _GenerateHeaders(ClientKeyObject.oauth_token, 
-                            ClientKeyObject.oauth_token_secret, 
-                            tweetURL, 'POST', app)
-                    },
-                    body: raw,
-                    redirect: 'follow'
-                };
-
-                console.log(Options.headers);
-                fetch("https://api.twitter.com/2/tweets", Options)
-                    .then(response => response.text())
-                    .then(result => res.send(result))
-                    .catch(error => console.log('error', error));
-
-
-            })
-            .catch(error => console.log('error', error));
-
-
-    });
 
 //------
 
@@ -256,11 +175,15 @@ app.post('/oauth/access_token', (req, res, next) => {
 
 });
 
+app.get('/test', (req, res, next) => {
+    console.log('tweets');
+    res.send('test');
+});
 
 
 //----
 
-    app.post('/oauth/*', (req, res, next) => {
+    app.post('/oauth/*?', (req, res, next) => {
         console.log("proxy::oauth::POST");
         let config = app.get('config'),
             proxyConfig = {
