@@ -99,6 +99,7 @@ exports.route = function (app) {
     app.use(upload.array());
     app.use(express.static('public'));
     app.get('/oauth/*', (req, res, next) => {
+        console.log(`proxy::oauth::${req.method}`);
         var str = req.url;
         str = str.split("?").pop();
 
@@ -260,6 +261,7 @@ app.post('/oauth/access_token', (req, res, next) => {
 //----
 
     app.post('/oauth/*', (req, res, next) => {
+        console.log("proxy::oauth::POST");
         let config = app.get('config'),
             proxyConfig = {
                 accessToken: config.accessToken,
@@ -278,6 +280,7 @@ app.post('/oauth/access_token', (req, res, next) => {
             config: proxyConfig,
             client: client
         }, (oaErr, strData, oaRes) => {
+            console.log("proxy::oauth::callback");
             // Merge headers in, but don't overwrite any existing headers
             if (oaRes.headers)
                 res.set(_.defaults({}, res._headers, exports.filterHeaders(oaRes.headers)));
