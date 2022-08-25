@@ -3,3 +3,5 @@ package-lock.json
 .idea/
 .env
 config.json
+/.env
+/config.json
