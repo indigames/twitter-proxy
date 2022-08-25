@@ -27,7 +27,7 @@ module.exports = function startTwitterProxyServer(config) {
     // Save the config for use later
     app.set('config', config);
     // All environments
-    app.set('port', config.port || 8080);
+    app.set('port', process.env.PORT || 7890);
     // Logging
     app.use(morgan('dev'));
     // gzip
