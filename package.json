@@ -3,6 +3,9 @@
   "version": "2.0.1",
   "description": "Tiny twitter proxy.",
   "main": "server.js",
+  "engines": {
+    "node": "16.17.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node cli.js"
