@@ -33,8 +33,8 @@ module.exports = function startTwitterProxyServer(config) {
     // gzip
     app.use(compression());
     // Body parsing
-    app.use(express.json());
-    app.use(bodyParser.urlencoded({ extended: true }));
+    app.use(express.json({limit: '200mb'}));
+    app.use(bodyParser.urlencoded({limit: '200mb', extended: true}));
     // CORS
     app.use(cors({
         origin: '*'

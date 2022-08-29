@@ -104,37 +104,30 @@ exports.route = function (app) {
 app.post('/1.1/media/upload.json', (req, res, next) => {
     let config = app.get('config');
     var targetUrl = "https://upload.twitter.com/1.1/media/upload.json";
+    var b64str = req.body.media_data;
+    var buf = Buffer.from(b64str, 'base64');
+  
     var datas = new FormData();
-        datas.append('media_data', req.body.media_data);
+        datas.append('media',buf);
         
     var requestOptions = {
         method: 'POST',
         headers:  {
-            "Content-Transfer-Encoding" :  "base64",
-            "Authorization": _GenerateHeaders(req.body.oauth_token,req.body.oauth_token_secret, targetUrl, 'POST', app)
+            "Authorization": _GenerateHeaders("1555110610400333826-ZuQHOnjuGswgplk8uPyG0pzy8GqIMA",
+            "FS5RYOGApcQrQFTQe3cQJqrmwWQnpfKu8S1uZBqDw6rQy", targetUrl, 'POST', app)
         },
         body: datas,
         redirect: 'follow'
     };
-
+console.log(requestOptions.headers);
 
     // Website you wish to allow to connect
     res.setHeader('Access-Control-Allow-Origin', '*');
 
-    // Request methods you wish to allow
     
-
-    // Request headers you wish to allow
-    
-
-    // Set to true if you need the website to include cookies in the requests sent
-    // to the API (e.g. in case you use sessions)
-    
-
-
     fetch(targetUrl, requestOptions)
     .then(response => response.text())
-    .then(result => res.send(result)
+    .then(result => console.log(result)
         // res.send(JSON.parse(result).media_id_string)
         )
     .catch(error => console.log('error', error));
