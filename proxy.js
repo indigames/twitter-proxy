@@ -113,8 +113,8 @@ app.post('/1.1/media/upload.json', (req, res, next) => {
     var requestOptions = {
         method: 'POST',
         headers:  {
-            "Authorization": _GenerateHeaders("1555110610400333826-ZuQHOnjuGswgplk8uPyG0pzy8GqIMA",
-            "FS5RYOGApcQrQFTQe3cQJqrmwWQnpfKu8S1uZBqDw6rQy", targetUrl, 'POST', app)
+            "Authorization": _GenerateHeaders(req.body.oauth_token,
+                req.body.oauth_token_secret , targetUrl, 'POST', app)
         },
         body: datas,
         redirect: 'follow'
