@@ -127,7 +127,12 @@ console.log(requestOptions.headers);
     
     fetch(targetUrl, requestOptions)
     .then(response => response.text())
-    .then(result => console.log(result)
+    .then(result =>{
+        res.send(result);
+        console.log(result);
+    
+    }
+         
         // res.send(JSON.parse(result).media_id_string)
         )
     .catch(error => console.log('error', error));
