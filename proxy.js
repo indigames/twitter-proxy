@@ -114,12 +114,12 @@ app.post('/1.1/media/upload.json', (req, res, next) => {
         method: 'POST',
         headers:  {
             "Authorization": _GenerateHeaders(req.body.oauth_token,
-                req.body.oauth_token_secret , targetUrl, 'POST', app)
+                req.body.oauth_token_secret , targetUrl, 'POST', app,null)
         },
         body: datas,
         redirect: 'follow'
     };
-console.log(requestOptions.headers);
+
 
     // Website you wish to allow to connect
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -151,7 +151,7 @@ app.post('/2/tweets', (req, res, next) => {
                     "Content-Type": "application/json",
                     "Authorization": _GenerateHeaders(req.body.oauth_token, 
                         req.body.oauth_token_secret, 
-                        tweetURL, 'POST', app)
+                        tweetURL, 'POST', app,null)
                 },
                 body: raw,
                 redirect: 'follow'
@@ -165,6 +165,35 @@ app.post('/2/tweets', (req, res, next) => {
     
 });
 
+
+app.post('/oauth/request_token', (req, res, next) => {
+    let config = app.get('config');
+    var targetUrl = "https://api.twitter.com/oauth/request_token";
+    var requestOptions = {
+        method: 'POST',
+        headers:  {
+            "Authorization":_GenerateHeaders(config.accessToken, 
+                config.accessTokenSecret, targetUrl, 'POST', app,req.body.callbackURL),
+    },
+    redirect: 'follow'};
+    console.log(requestOptions.headers);
+    fetch(targetUrl, requestOptions)
+  .then(response => response.text())
+  .then(result =>{
+    var resultObject = {};
+    var tokens = result.split('&');
+    for (let index = 0; index < tokens.length; index++) {
+        const token = tokens[index];
+        var [key, content] = token.split('=');
+        resultObject[key] = content;
+    }
+    res.send(resultObject);
+  })
+  .catch(error => console.log('error', error));
+    
+});
+
+
 app.post('/oauth/access_token', (req, res, next) => {
    
     var targetUrl = "https://api.twitter.com/oauth/access_token";
@@ -173,7 +202,7 @@ app.post('/oauth/access_token', (req, res, next) => {
     var requestOptions = {
         method: 'POST',
         headers:  {
-            "Authorization": _GenerateHeaders(req.body.oauth_token, config.accessTokenSecret, targetUrl, 'POST', app),
+            "Authorization": _GenerateHeaders(req.body.oauth_token, config.accessTokenSecret, targetUrl, 'POST', app,null),
         },
         body: datas,
         redirect: 'follow'
@@ -198,7 +227,7 @@ app.get('/test', (req, res, next) => {
 //----
 
     app.post('/oauth/*?', (req, res, next) => {
-        console.log("proxy::oauth::POST");
+      
         let config = app.get('config'),
             proxyConfig = {
                 accessToken: config.accessToken,
@@ -217,7 +246,7 @@ app.get('/test', (req, res, next) => {
             config: proxyConfig,
             client: client
         }, (oaErr, strData, oaRes) => {
-            console.log("proxy::oauth::callback");
+            
             // Merge headers in, but don't overwrite any existing headers
             if (oaRes.headers)
                 res.set(_.defaults({}, res._headers, exports.filterHeaders(oaRes.headers)));
@@ -336,25 +365,29 @@ _encodeData = function (toEncode) {
 
 
 
-_GenerateHeaders = function (oauth_token, oauth_token_secret, targetUrl, method, app) {
+_GenerateHeaders = function (oauth_token, oauth_token_secret, targetUrl, method, app,callbackURL) {
 
     let config = app.get('config');
 
 
     var oauthParameters = {
-        "oauth_consumer_key": config.consumerKey,
+        "oauth_consumer_key": "EhCuUQwAgUfGnRxdqMkgPOhIX",
         "oauth_token": "",
         "oauth_signature_method": 'HMAC-SHA1',
         "oauth_timestamp": Math.floor((new Date()).getTime() / 1000),
         "oauth_nonce": _getNonce(11),
         "oauth_version": '1.0'
     };
+    if(callbackURL != null){
+        oauthParameters["oauth_callback"] = callbackURL
+                }
+
     oauthParameters["oauth_token"] = oauth_token;
 
     var httpMethod = method,
         url = targetUrl,
         parameters = oauthParameters,
-        consumerSecret = config.consumerSecret,
+        consumerSecret = "maMbIr67mtvzCrrQqnLfJghFWq6BelphQqkoZqzZS3xMXu8QHi",
         tokenSecret = oauth_token_secret;
 
     var signatute = oauthSignature.generate(httpMethod, url, parameters, consumerSecret, tokenSecret);
@@ -364,8 +397,11 @@ _GenerateHeaders = function (oauth_token, oauth_token_secret, targetUrl, method,
     oauthParameters["oauth_signature"] = signatute;
     var authHeader = "OAuth oauth_consumer_key=" + oauthParameters.oauth_consumer_key +
         ",oauth_nonce=" + oauthParameters.oauth_nonce + ",oauth_signature_method=" + oauthParameters.oauth_signature_method +
-        ",oauth_timestamp=" + oauthParameters.oauth_timestamp + ",oauth_token=" + oauthParameters.oauth_token + ",oauth_version=" + oauthParameters.oauth_version + ",oauth_signature="+oauthParameters.oauth_signature;
-
+        ",oauth_timestamp=" + oauthParameters.oauth_timestamp + ",oauth_token=" + oauthParameters.oauth_token + ",oauth_version=" + oauthParameters.oauth_version +",oauth_signature="+oauthParameters.oauth_signature;
+        if(callbackURL != null){
+            oauthParameters.oauth_callback = oauthParameters.oauth_callback.replaceAll(":", "%3A").replaceAll("/", "%2F");
+            authHeader+=",oauth_callback=" + oauthParameters.oauth_callback;
+                    }
     return authHeader;
 
 }
