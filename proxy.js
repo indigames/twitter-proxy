@@ -160,7 +160,7 @@ app.post('/2/tweets', (req, res, next) => {
             
             fetch(tweetURL, Options)
                 .then(response => response.text())
-                .then(result => console.log(result))
+                .then(result =>  res.send(result))
                 .catch(error => console.log('error', error));
     
 });
